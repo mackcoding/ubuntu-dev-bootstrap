@@ -29,13 +29,14 @@ declare -A INSTALL_OPTIONS=(
     ["bun"]="Bun Runtime"
     ["docker"]="Docker & Docker Compose"
     ["kompose"]="Kompose (Kubernetes)"
+    ["zed"]="Zed Code Editor"
     ["ghostty"]="Ghostty Terminal"
     ["zoom"]="Zoom"
 )
 
 # Show selection menu
 CHOICES=$(whiptail --title "Ubuntu Setup" --checklist \
-    "Select components to install (Space to toggle, Enter to confirm):" 20 78 11 \
+    "Select components to install (Space to toggle, Enter to confirm):" 20 78 12 \
     "system_update" "${INSTALL_OPTIONS[system_update]}" ON \
     "git_config" "${INSTALL_OPTIONS[git_config]}" ON \
     "homebrew" "${INSTALL_OPTIONS[homebrew]}" ON \
@@ -45,6 +46,7 @@ CHOICES=$(whiptail --title "Ubuntu Setup" --checklist \
     "bun" "${INSTALL_OPTIONS[bun]}" ON \
     "docker" "${INSTALL_OPTIONS[docker]}" ON \
     "kompose" "${INSTALL_OPTIONS[kompose]}" ON \
+    "zed" "${INSTALL_OPTIONS[zed]}" ON \
     "ghostty" "${INSTALL_OPTIONS[ghostty]}" ON \
     "zoom" "${INSTALL_OPTIONS[zoom]}" ON \
     3>&1 1>&2 2>&3)
@@ -181,6 +183,16 @@ if [[ " ${SELECTED[@]} " =~ " kompose " ]]; then
         sudo mv /tmp/kompose /usr/local/bin/kompose
     else
         log_warn "Kompose already installed"
+    fi
+fi
+
+# Zed
+if [[ " ${SELECTED[@]} " =~ " zed " ]]; then
+    log_info "Installing Zed editor..."
+    if ! command -v zed &> /dev/null; then
+        curl -f https://zed.dev/install.sh | sh
+    else
+        log_warn "Zed already installed"
     fi
 fi
 
