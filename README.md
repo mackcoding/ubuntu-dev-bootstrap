@@ -11,7 +11,7 @@ Provides a TUI menu to selectively install and configure:
 - **Homebrew** - Package manager for Linux
 - **Oh My Zsh** - Enhanced shell with plugins
 - **Starship** - Modern shell prompt with Gruvbox theme
-- **Dev Tools** - kubectl, k9s, kind, codex, gemini-cli, claude-code
+- **Dev Tools** - kubectl, k9s, kind, tanka, jsonnet, codex, gemini-cli, claude-code
 - **Bun** - Fast JavaScript runtime
 - **Docker** - Container platform with compose
 - **Kompose** - Kubernetes conversion tool
