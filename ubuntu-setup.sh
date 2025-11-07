@@ -21,6 +21,7 @@ fi
 # Define installation options
 declare -A INSTALL_OPTIONS=(
     ["system_update"]="System Update & Basic Packages"
+    ["git_config"]="Git Configuration (name & email)"
     ["homebrew"]="Homebrew Package Manager"
     ["ohmyzsh"]="Oh My Zsh"
     ["starship"]="Starship Prompt"
@@ -34,8 +35,9 @@ declare -A INSTALL_OPTIONS=(
 
 # Show selection menu
 CHOICES=$(whiptail --title "Ubuntu Setup" --checklist \
-    "Select components to install (Space to toggle, Enter to confirm):" 20 78 10 \
+    "Select components to install (Space to toggle, Enter to confirm):" 20 78 11 \
     "system_update" "${INSTALL_OPTIONS[system_update]}" ON \
+    "git_config" "${INSTALL_OPTIONS[git_config]}" ON \
     "homebrew" "${INSTALL_OPTIONS[homebrew]}" ON \
     "ohmyzsh" "${INSTALL_OPTIONS[ohmyzsh]}" ON \
     "starship" "${INSTALL_OPTIONS[starship]}" ON \
@@ -62,6 +64,25 @@ if [[ " ${SELECTED[@]} " =~ " system_update " ]]; then
     log_info "Updating system and installing basic packages..."
     sudo apt update && sudo apt dist-upgrade -y
     sudo apt install -y git curl zsh build-essential procps file clamav clamav-daemon gnome-browser-connector
+fi
+
+# Git Configuration
+if [[ " ${SELECTED[@]} " =~ " git_config " ]]; then
+    log_info "Configuring Git..."
+
+    GIT_NAME=$(whiptail --inputbox "Enter your Git name:" 8 60 "$(git config --global user.name 2>/dev/null || echo '')" 3>&1 1>&2 2>&3)
+    if [ $? -ne 0 ]; then
+        log_warn "Git name configuration skipped"
+    else
+        GIT_EMAIL=$(whiptail --inputbox "Enter your Git email:" 8 60 "$(git config --global user.email 2>/dev/null || echo '')" 3>&1 1>&2 2>&3)
+        if [ $? -ne 0 ]; then
+            log_warn "Git email configuration skipped"
+        else
+            git config --global user.name "$GIT_NAME"
+            git config --global user.email "$GIT_EMAIL"
+            log_info "Git configured: $GIT_NAME <$GIT_EMAIL>"
+        fi
+    fi
 fi
 
 # Homebrew
