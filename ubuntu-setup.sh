@@ -29,6 +29,7 @@ declare -A INSTALL_OPTIONS=(
     ["bun"]="Bun Runtime"
     ["docker"]="Docker & Docker Compose"
     ["kompose"]="Kompose (Kubernetes)"
+    ["jsonnet_bundler"]="Jsonnet Bundler (jb)"
     ["zed"]="Zed Code Editor"
     ["ghostty"]="Ghostty Terminal"
     ["zoom"]="Zoom"
@@ -42,7 +43,7 @@ fi
 
 # Show selection menu
 CHOICES=$(whiptail --title "Ubuntu Setup" --checklist \
-    "Select components to install (Space to toggle, Enter to confirm):" 20 78 12 \
+    "Select components to install (Space to toggle, Enter to confirm):" 20 78 13 \
     "system_update" "${INSTALL_OPTIONS[system_update]}" ON \
     "git_config" "${INSTALL_OPTIONS[git_config]}" "$GIT_CONFIG_DEFAULT" \
     "homebrew" "${INSTALL_OPTIONS[homebrew]}" ON \
@@ -52,6 +53,7 @@ CHOICES=$(whiptail --title "Ubuntu Setup" --checklist \
     "bun" "${INSTALL_OPTIONS[bun]}" ON \
     "docker" "${INSTALL_OPTIONS[docker]}" ON \
     "kompose" "${INSTALL_OPTIONS[kompose]}" ON \
+    "jsonnet_bundler" "${INSTALL_OPTIONS[jsonnet_bundler]}" ON \
     "zed" "${INSTALL_OPTIONS[zed]}" ON \
     "ghostty" "${INSTALL_OPTIONS[ghostty]}" ON \
     "zoom" "${INSTALL_OPTIONS[zoom]}" ON \
@@ -71,7 +73,7 @@ log_info "Starting installation..."
 if [[ " ${SELECTED[@]} " =~ " system_update " ]]; then
     log_info "Updating system and installing basic packages..."
     sudo apt update && sudo apt dist-upgrade -y
-    sudo apt install -y git curl zsh build-essential procps file clamav clamav-daemon gnome-browser-connector
+    sudo apt install -y git curl zsh build-essential procps file clamav clamav-daemon gnome-browser-connector htop tree jq btop neovim plocate golang-go
 fi
 
 # Git Configuration
@@ -153,7 +155,7 @@ if [[ " ${SELECTED[@]} " =~ " brew_tools " ]]; then
         eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)" 2>/dev/null || true
 
         # Define packages to install
-        BREW_PACKAGES=(k9s kubectl kind tanka jsonnet codex gemini-cli)
+        BREW_PACKAGES=(k9s kubectl kind tanka codex gemini-cli helix)
         BREW_CASKS=(claude-code)
 
         # Install or upgrade regular packages
@@ -238,6 +240,32 @@ if [[ " ${SELECTED[@]} " =~ " kompose " ]]; then
         curl -L https://github.com/kubernetes/kompose/releases/download/v1.34.0/kompose-linux-amd64 -o /tmp/kompose
         chmod +x /tmp/kompose
         sudo mv /tmp/kompose /usr/local/bin/kompose
+    fi
+fi
+
+# Jsonnet Bundler
+if [[ " ${SELECTED[@]} " =~ " jsonnet_bundler " ]]; then
+    if ! command -v jb &> /dev/null; then
+        log_info "Installing Jsonnet Bundler (jb)..."
+        sudo curl -Lo /usr/local/bin/jb https://github.com/jsonnet-bundler/jsonnet-bundler/releases/latest/download/jb-linux-amd64
+        sudo chmod a+x /usr/local/bin/jb
+    else
+        log_warn "Jsonnet Bundler already installed, upgrading..."
+        sudo curl -Lo /usr/local/bin/jb https://github.com/jsonnet-bundler/jsonnet-bundler/releases/latest/download/jb-linux-amd64
+        sudo chmod a+x /usr/local/bin/jb
+    fi
+fi
+
+# Jsonnet (via Go)
+if [[ " ${SELECTED[@]} " =~ " brew_tools " ]]; then
+    if command -v jsonnet &> /dev/null; then
+        log_warn "Jsonnet already installed, upgrading..."
+        go install github.com/google/go-jsonnet/cmd/jsonnet@latest
+        go install github.com/google/go-jsonnet/cmd/jsonnetfmt@latest
+    else
+        log_info "Installing Jsonnet via Go..."
+        go install github.com/google/go-jsonnet/cmd/jsonnet@latest
+        go install github.com/google/go-jsonnet/cmd/jsonnetfmt@latest
     fi
 fi
 
